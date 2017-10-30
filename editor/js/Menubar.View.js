@@ -1,48 +1,41 @@
+/**
+ * @author mrdoob / http://mrdoob.com/
+ */
+
 Menubar.View = function ( editor ) {
 
 	var container = new UI.Panel();
 	container.setClass( 'menu' );
 
 	var title = new UI.Panel();
+	title.setClass( 'title' );
 	title.setTextContent( 'View' );
-	title.setMargin( '0px' );
-	title.setPadding( '8px' );
 	container.add( title );
-
-	//
 
 	var options = new UI.Panel();
 	options.setClass( 'options' );
 	container.add( options );
 
-	// themes
+	// VR mode
 
-	var option = new UI.Panel();
+	var option = new UI.Row();
 	option.setClass( 'option' );
-	option.setTextContent( 'Light theme' );
+	option.setTextContent( 'VR mode' );
 	option.onClick( function () {
 
-		editor.setTheme( 'css/light.css' );
-		editor.config.setKey( 'theme', 'css/light.css' );
+		if ( WEBVR.isAvailable() === true ) {
+
+			editor.signals.enterVR.dispatch();
+
+		} else {
+
+			alert( 'WebVR not available' );
+
+		}
 
 	} );
 	options.add( option );
-
-	// about
-
-	var option = new UI.Panel();
-	option.setClass( 'option' );
-	option.setTextContent( 'Dark theme' );
-	option.onClick( function () {
-
-		editor.setTheme( 'css/dark.css' );
-		editor.config.setKey( 'theme', 'css/dark.css' );
-
-	} );
-	options.add( option );
-
-	//
 
 	return container;
 
-}
+};

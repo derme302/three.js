@@ -1,14 +1,14 @@
-function generateGeometry(objectType, numObjects) {
+function generateGeometry( objectType, numObjects ) {
 
 	var geometry = new THREE.Geometry();
-	
+
 	function applyVertexColors( g, c ) {
 
 		g.faces.forEach( function( f ) {
 
 			var n = ( f instanceof THREE.Face3 ) ? 3 : 4;
 
-			for( var j = 0; j < n; j ++ ) {
+			for ( var j = 0; j < n; j ++ ) {
 
 				f.vertexColors[ j ] = c;
 
@@ -19,7 +19,7 @@ function generateGeometry(objectType, numObjects) {
 	}
 
 	for ( var i = 0; i < numObjects; i ++ ) {
-	
+
 		var position = new THREE.Vector3();
 
 		position.x = Math.random() * 10000 - 5000;
@@ -34,33 +34,35 @@ function generateGeometry(objectType, numObjects) {
 
 		var scale = new THREE.Vector3();
 
-		var geom, color=new THREE.Color();
+		var geom, color = new THREE.Color();
 
 		scale.x = Math.random() * 200 + 100;
 
-		if ( objectType == "cube" )
-		{
+		if ( objectType == "cube" ) {
+
 			geom = new THREE.BoxGeometry( 1, 1, 1 );
 			scale.y = Math.random() * 200 + 100;
 			scale.z = Math.random() * 200 + 100;
-			color.setRGB( 0, 0, Math.random()+0.1 );
-		}
-		else if ( objectType == "sphere" )
-		{
-			geom = new THREE.IcosahedronGeometry( 1, 1 )
+			color.setRGB( 0, 0, Math.random() + 0.1 );
+
+		} else if ( objectType == "sphere" ) {
+
+			geom = new THREE.IcosahedronGeometry( 1, 1 );
 			scale.y = scale.z = scale.x;
-			color.setRGB( Math.random()+0.1, 0, 0 );
+			color.setRGB( Math.random() + 0.1, 0, 0 );
+
 		}
-		
+
 		// give the geom's vertices a random color, to be displayed
 		applyVertexColors( geom, color );
 
-		var cube = new THREE.Mesh( geom );
-		cube.position.copy( position );
-		cube.rotation.copy( rotation );
-		cube.scale.copy( scale );
+		var mesh = new THREE.Mesh( geom );
+		mesh.position.copy( position );
+		mesh.rotation.copy( rotation );
+		mesh.scale.copy( scale );
+		mesh.updateMatrix();
 
-		THREE.GeometryUtils.merge( geometry, cube );
+		geometry.merge( mesh.geometry, mesh.matrix );
 
 	}
 
@@ -69,12 +71,12 @@ function generateGeometry(objectType, numObjects) {
 }
 
 function Scene ( type, numObjects, cameraZ, fov, rotationSpeed, clearColor ) {
-	
+
 	this.clearColor = clearColor;
-	
+
 	this.camera = new THREE.PerspectiveCamera( fov, window.innerWidth / window.innerHeight, 1, 10000 );
 	this.camera.position.z = cameraZ;
-	
+
 	// Setup scene
 	this.scene = new THREE.Scene();
 	this.scene.add( new THREE.AmbientLight( 0x555555 ) );
@@ -84,25 +86,27 @@ function Scene ( type, numObjects, cameraZ, fov, rotationSpeed, clearColor ) {
 	this.scene.add( light );
 
 	this.rotationSpeed = rotationSpeed;
-	defaultMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff, shading: THREE.FlatShading, vertexColors: THREE.VertexColors	} );
+
+	var defaultMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, flatShading: true, vertexColors: THREE.VertexColors } );
 	this.mesh = new THREE.Mesh( generateGeometry( type, numObjects ), defaultMaterial );
 	this.scene.add( this.mesh );
 
-	renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBuffer: false };
+	var renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBuffer: false };
 	this.fbo = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters );
-	
+
 	this.render = function( delta, rtt ) {
-		
-		this.mesh.rotation.x += delta*this.rotationSpeed.x;
-		this.mesh.rotation.y += delta*this.rotationSpeed.y;
-		this.mesh.rotation.z += delta*this.rotationSpeed.z;
-		
-		renderer.setClearColor( this.clearColor, 1 );
-		
-		if (rtt)
+
+		this.mesh.rotation.x += delta * this.rotationSpeed.x;
+		this.mesh.rotation.y += delta * this.rotationSpeed.y;
+		this.mesh.rotation.z += delta * this.rotationSpeed.z;
+
+		renderer.setClearColor( this.clearColor );
+
+		if ( rtt )
 			renderer.render( this.scene, this.camera, this.fbo, true );
 		else
 			renderer.render( this.scene, this.camera );
-		
+
 	};
+
 }
